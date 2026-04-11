@@ -1,0 +1,77 @@
+﻿@model IEnumerable<Microsoft.AspNetCore.Identity.IdentityUser>
+@{
+    ViewData["Title"] = "Manage Users";
+}
+
+<h2>👥 Manage Users</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<a asp-action="CreateUser" class="btn btn-primary mb-3">
+    + Create New User
+</a>
+
+@if (!Model.Any())
+{
+    <p>No users in the system yet.</p>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr>
+                    <td>@user.Email</td>
+                    <td>
+                        @if (ViewBag.UserRoles != null &&
+                                                     ViewBag.UserRoles.ContainsKey(user.Id))
+                        {
+                            var roles = ViewBag.UserRoles[user.Id] as IList<string>;
+                            if (roles != null && roles.Any())
+                            {
+                                foreach (var role in roles)
+                                {
+                                    <span class="badge bg-primary me-1">@role</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">No Role</span>
+                            }
+                        }
+                    </td>
+                    <td>
+                        <form asp-action="DeleteUser" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@user.Id" />
+                            <button type="submit" class="btn btn-sm btn-danger"
+                                    onclick="return confirm('Are you sure you want to delete this user?')">
+                                🗑 Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<a asp-action="Index" class="btn btn-secondary mt-3">
+    Back to Dashboard
+</a>

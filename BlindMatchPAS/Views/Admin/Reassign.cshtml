@@ -1,0 +1,44 @@
+﻿@model BlindMatchPAS.Models.Project
+@{
+    ViewData["Title"] = "Reassign Project";
+}
+
+<h2>🔄 Reassign Project</h2>
+
+<div class="card p-4 mb-4">
+    <h5>@Model.Title</h5>
+    <p><strong>Research Area:</strong> @Model.ResearchArea</p>
+    <p>
+        <strong>Current Status:</strong>
+        <span class="badge bg-secondary">@Model.Status</span>
+    </p>
+    <p>
+        <strong>Current Supervisor:</strong>
+        @(Model.SupervisorId ?? "Not assigned")
+    </p>
+</div>
+
+<form asp-action="Reassign" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model.Id" />
+
+    <div class="mb-3">
+        <label class="form-label">Select New Supervisor</label>
+        <select name="supervisorId" class="form-select" required>
+            <option value="">-- Select Supervisor --</option>
+            @if (ViewBag.Supervisors != null)
+            {
+                foreach (var supervisor in ViewBag.Supervisors)
+                {
+                    <option value="@supervisor.Id">@supervisor.Email</option>
+                }
+            }
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-warning"
+            onclick="return confirm('Are you sure you want to reassign this project?')">
+        🔄 Reassign Project
+    </button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
