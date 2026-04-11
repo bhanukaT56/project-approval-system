@@ -1,0 +1,48 @@
+﻿@model BlindMatchPAS.Models.Project
+@{
+    ViewData["Title"] = "Submit Proposal";
+}
+
+<h2>Submit a New Project Proposal</h2>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    
+    <div class="mb-3">
+        <label asp-for="Title" class="form-label"></label>
+        <input asp-for="Title" class="form-control" placeholder="Enter your project title" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Abstract" class="form-label"></label>
+        <textarea asp-for="Abstract" class="form-control" rows="5"
+                  placeholder="Describe your project idea in detail"></textarea>
+        <span asp-validation-for="Abstract" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="TechnicalStack" class="form-label"></label>
+        <input asp-for="TechnicalStack" class="form-control"
+               placeholder="e.g. React, Node.js, MongoDB" />
+        <span asp-validation-for="TechnicalStack" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ResearchArea" class="form-label"></label>
+        <select asp-for="ResearchArea" class="form-select">
+            <option value="">-- Select Research Area --</option>
+            <option value="Artificial Intelligence">Artificial Intelligence</option>
+            <option value="Web Development">Web Development</option>
+            <option value="Cybersecurity">Cybersecurity</option>
+            <option value="Cloud Computing">Cloud Computing</option>
+            <option value="Machine Learning">Machine Learning</option>
+            <option value="Data Science">Data Science</option>
+            <option value="Mobile Development">Mobile Development</option>
+        </select>
+        <span asp-validation-for="ResearchArea" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit Proposal</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

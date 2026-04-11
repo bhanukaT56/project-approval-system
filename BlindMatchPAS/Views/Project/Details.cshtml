@@ -1,0 +1,65 @@
+﻿@model BlindMatchPAS.Models.Project
+@{
+    ViewData["Title"] = "Project Details";
+}
+
+<h2>Project Details</h2>
+
+<div class="card p-4">
+    <h4>@Model.Title</h4>
+    
+    <hr />
+    
+    <dl class="row">
+        <dt class="col-sm-3">Research Area</dt>
+        <dd class="col-sm-9">@Model.ResearchArea</dd>
+
+        <dt class="col-sm-3">Technical Stack</dt>
+        <dd class="col-sm-9">@Model.TechnicalStack</dd>
+
+        <dt class="col-sm-3">Abstract</dt>
+        <dd class="col-sm-9">@Model.Abstract</dd>
+
+        <dt class="col-sm-3">Status</dt>
+        <dd class="col-sm-9">
+            <span class="badge
+                @(Model.Status == "Matched" ? "bg-success" :
+                                    Model.Status == "Under Review" ? "bg-warning" :
+                                    "bg-secondary")">
+                @Model.Status
+            </span>
+        </dd>
+
+        <dt class="col-sm-3">Submitted On</dt>
+        <dd class="col-sm-9">@Model.CreatedAt.ToString("dd MMM yyyy")</dd>
+    </dl>
+
+    @if (Model.IsRevealed && Model.SupervisorId != null)
+    {
+        <div class="alert alert-success mt-3">
+            <h5>🎉 You have been matched with a Supervisor!</h5>
+            <p>
+                Your supervisor details have been revealed.
+                Please check your email or contact your supervisor directly.
+            </p>
+            <p><strong>Supervisor ID:</strong> @Model.SupervisorId</p>
+        </div>
+    }
+    else if (Model.Status == "Matched" && !Model.IsRevealed)
+    {
+        <div class="alert alert-info mt-3">
+            <p>A supervisor has shown interest. Waiting for confirmation.</p>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-secondary mt-3">
+            <p>
+                Your proposal is currently <strong>@Model.Status</strong>.
+                Check back later for updates.
+            </p>
+        </div>
+    }
+</div>
+
+<a asp-action="Index" class="btn btn-secondary mt-3">Back to My Projects</a>

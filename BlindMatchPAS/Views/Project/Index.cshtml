@@ -1,0 +1,62 @@
+﻿@model IEnumerable<BlindMatchPAS.Models.Project>
+@{
+    ViewData["Title"] = "My Projects";
+}
+
+<h2>My Project Proposals</h2>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<a asp-action="Create" class="btn btn-primary mb-3">+ Submit New Proposal</a>
+
+@if (!Model.Any())
+{
+    <p>You have not submitted any proposals yet.</p>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Research Area</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var project in Model)
+            {
+                <tr>
+                    <td>@project.Title</td>
+                    <td>@project.ResearchArea</td>
+                    <td>
+                        <span class="badge
+                            @(project.Status == "Matched" ? "bg-success" :
+                                                            project.Status == "Under Review" ? "bg-warning" :
+                                                            "bg-secondary")">
+                            @project.Status
+                        </span>
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@project.Id"
+                           class="btn btn-sm btn-info">View</a>
+                        @if (project.Status == "Pending")
+                        {
+                            <a asp-action="Edit" asp-route-id="@project.Id"
+                               class="btn btn-sm btn-warning">Edit</a>
+                            <a asp-action="Withdraw" asp-route-id="@project.Id"
+                                   class="btn btn-sm btn-danger"
+                                   onclick="return confirm('Are you sure you want to withdraw this proposal?')">
+                                Withdraw
+                            </a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
