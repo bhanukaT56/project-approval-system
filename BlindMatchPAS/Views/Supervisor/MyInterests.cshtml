@@ -1,0 +1,73 @@
+﻿@model IEnumerable<BlindMatchPAS.Models.Project>
+@{
+    ViewData["Title"] = "My Interests";
+}
+
+<h2>Projects I am Interested In</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+@if (!Model.Any())
+{
+    <p>You have not expressed interest in any projects yet.</p>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Research Area</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var project in Model)
+            {
+                <tr>
+                    <td>@project.Title</td>
+                    <td>@project.ResearchArea</td>
+                    <td>
+                        <span class="badge
+                            @(project.Status == "Matched" ? "bg-success" :
+                                                            project.Status == "Under Review" ? "bg-warning" :
+                                                            "bg-secondary")">
+                            @project.Status
+                        </span>
+                    </td>
+                    <td>
+                        @if (project.Status == "Under Review")
+                        {
+                            <form asp-action="ConfirmMatch" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@project.Id" />
+                                <button type="submit" class="btn btn-sm btn-success"
+                                        onclick="return confirm('Confirm match? This will reveal student identity.')">
+                                    ✅ Confirm Match
+                                </button>
+                            </form>
+                        }
+                        @if (project.Status == "Matched")
+                        {
+                            <a asp-action="RevealedDetails" asp-route-id="@project.Id"
+                                   class="btn btn-sm btn-info">
+                                👁 View Student Details
+                            </a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<a asp-action="Index" class="btn btn-secondary mt-3">Back to Browse</a>

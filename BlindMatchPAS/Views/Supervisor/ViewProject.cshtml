@@ -1,0 +1,48 @@
+﻿@model BlindMatchPAS.Models.Project
+@{
+    ViewData["Title"] = "View Project";
+}
+
+<h2>Project Details</h2>
+<p class="text-muted">Student identity is hidden until you confirm a match.</p>
+
+<div class="card p-4">
+    <h4>@Model.Title</h4>
+    <hr />
+
+    <dl class="row">
+        <dt class="col-sm-3">Research Area</dt>
+        <dd class="col-sm-9">
+            <span class="badge bg-primary">@Model.ResearchArea</span>
+        </dd>
+
+        <dt class="col-sm-3">Technical Stack</dt>
+        <dd class="col-sm-9">@Model.TechnicalStack</dd>
+
+        <dt class="col-sm-3">Abstract</dt>
+        <dd class="col-sm-9">@Model.Abstract</dd>
+
+        <dt class="col-sm-3">Status</dt>
+        <dd class="col-sm-9">
+            <span class="badge bg-secondary">@Model.Status</span>
+        </dd>
+
+        <dt class="col-sm-3">Student</dt>
+        <dd class="col-sm-9">
+            <span class="text-warning">🔒 Anonymous - Identity hidden</span>
+        </dd>
+    </dl>
+
+    <div class="mt-3">
+        <form asp-action="ExpressInterest" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <button type="submit" class="btn btn-success"
+                    onclick="return confirm('Are you sure you want to express interest in this project?')">
+                ✋ Express Interest
+            </button>
+        </form>
+    </div>
+</div>
+
+<a asp-action="Index" class="btn btn-secondary mt-3">Back to Browse</a>
