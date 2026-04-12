@@ -1,21 +1,21 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using BlindMatchPAS.Data;
 using BlindMatchPAS.Models;
+using BlindMatchPAS.Services;
 
 namespace BlindMatchPAS.Controllers
 {
     [Authorize]
     public class ProjectController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IProjectService _projectService;
         private readonly UserManager<IdentityUser> _userManager;
 
-        public ProjectController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public ProjectController(IProjectService projectService,
+            UserManager<IdentityUser> userManager)
         {
-            _context = context;
+            _projectService = projectService;
             _userManager = userManager;
         }
 
@@ -24,9 +24,7 @@ namespace BlindMatchPAS.Controllers
         public async Task<IActionResult> Index()
         {
             var userId = _userManager.GetUserId(User);
-            var projects = await _context.Projects
-                .Where(p => p.StudentId == userId)
-                .ToListAsync();
+            var projects = await _projectService.GetStudentProjectsAsync(userId!);
             return View(projects);
         }
 
@@ -49,8 +47,7 @@ namespace BlindMatchPAS.Controllers
                 project.Status = "Pending";
                 project.IsRevealed = false;
                 project.CreatedAt = DateTime.Now;
-                _context.Projects.Add(project);
-                await _context.SaveChangesAsync();
+                await _projectService.CreateProjectAsync(project);
                 return RedirectToAction(nameof(Index));
             }
             return View(project);
@@ -61,9 +58,9 @@ namespace BlindMatchPAS.Controllers
         public async Task<IActionResult> Edit(int id)
         {
             var userId = _userManager.GetUserId(User);
-            var project = await _context.Projects
-                .FirstOrDefaultAsync(p => p.Id == id && p.StudentId == userId);
-            if (project == null) return NotFound();
+            var project = await _projectService.GetProjectByIdAsync(id);
+            if (project == null || project.StudentId != userId)
+                return NotFound();
             if (project.Status != "Pending")
             {
                 TempData["Error"] = "You can only edit pending proposals.";
@@ -79,19 +76,16 @@ namespace BlindMatchPAS.Controllers
         public async Task<IActionResult> Edit(int id, Project project)
         {
             var userId = _userManager.GetUserId(User);
-            var existing = await _context.Projects
-                .FirstOrDefaultAsync(p => p.Id == id && p.StudentId == userId);
-            if (existing == null) return NotFound();
+            var existing = await _projectService.GetProjectByIdAsync(id);
+            if (existing == null || existing.StudentId != userId)
+                return NotFound();
             if (existing.Status != "Pending")
             {
                 TempData["Error"] = "You can only edit pending proposals.";
                 return RedirectToAction(nameof(Index));
             }
-            existing.Title = project.Title;
-            existing.Abstract = project.Abstract;
-            existing.TechnicalStack = project.TechnicalStack;
-            existing.ResearchArea = project.ResearchArea;
-            await _context.SaveChangesAsync();
+            project.Id = id;
+            await _projectService.UpdateProjectAsync(project);
             return RedirectToAction(nameof(Index));
         }
 
@@ -100,27 +94,26 @@ namespace BlindMatchPAS.Controllers
         public async Task<IActionResult> Withdraw(int id)
         {
             var userId = _userManager.GetUserId(User);
-            var project = await _context.Projects
-                .FirstOrDefaultAsync(p => p.Id == id && p.StudentId == userId);
-            if (project == null) return NotFound();
+            var project = await _projectService.GetProjectByIdAsync(id);
+            if (project == null || project.StudentId != userId)
+                return NotFound();
             if (project.Status != "Pending")
             {
                 TempData["Error"] = "You can only withdraw pending proposals.";
                 return RedirectToAction(nameof(Index));
             }
-            _context.Projects.Remove(project);
-            await _context.SaveChangesAsync();
+            await _projectService.DeleteProjectAsync(id);
             return RedirectToAction(nameof(Index));
         }
 
-        // Student: View matched supervisor details after reveal
+        // Student: View project details
         [Authorize(Roles = "Student")]
         public async Task<IActionResult> Details(int id)
         {
             var userId = _userManager.GetUserId(User);
-            var project = await _context.Projects
-                .FirstOrDefaultAsync(p => p.Id == id && p.StudentId == userId);
-            if (project == null) return NotFound();
+            var project = await _projectService.GetProjectByIdAsync(id);
+            if (project == null || project.StudentId != userId)
+                return NotFound();
             return View(project);
         }
     }

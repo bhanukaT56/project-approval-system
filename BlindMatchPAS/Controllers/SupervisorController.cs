@@ -1,41 +1,35 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using BlindMatchPAS.Data;
-using BlindMatchPAS.Models;
+using BlindMatchPAS.Services;
 
 namespace BlindMatchPAS.Controllers
 {
     [Authorize(Roles = "Supervisor")]
     public class SupervisorController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IProjectService _projectService;
         private readonly UserManager<IdentityUser> _userManager;
 
-        public SupervisorController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public SupervisorController(IProjectService projectService,
+            UserManager<IdentityUser> userManager)
         {
-            _context = context;
+            _projectService = projectService;
             _userManager = userManager;
         }
 
         // Blind browse - supervisor sees projects without student identity
         public async Task<IActionResult> Index(string? area)
         {
-            var projects = _context.Projects
-                .Where(p => p.Status == "Pending" || p.Status == "Under Review");
-
-            if (!string.IsNullOrEmpty(area))
-                projects = projects.Where(p => p.ResearchArea == area);
-
+            var projects = await _projectService.GetAvailableProjectsAsync(area);
             ViewBag.SelectedArea = area;
-            return View(await projects.ToListAsync());
+            return View(projects);
         }
 
         // View single project anonymously
         public async Task<IActionResult> ViewProject(int id)
         {
-            var project = await _context.Projects.FindAsync(id);
+            var project = await _projectService.GetProjectByIdAsync(id);
             if (project == null) return NotFound();
             return View(project);
         }
@@ -45,19 +39,14 @@ namespace BlindMatchPAS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ExpressInterest(int id)
         {
-            var project = await _context.Projects.FindAsync(id);
-            if (project == null) return NotFound();
+            var supervisorId = _userManager.GetUserId(User)!;
+            var result = await _projectService.ExpressInterestAsync(id, supervisorId);
 
-            if (project.Status != "Pending")
+            if (!result)
             {
                 TempData["Error"] = "This project is no longer available.";
                 return RedirectToAction(nameof(Index));
             }
-
-            var supervisorId = _userManager.GetUserId(User);
-            project.Status = "Under Review";
-            project.SupervisorId = supervisorId;
-            await _context.SaveChangesAsync();
 
             TempData["Success"] = "You have expressed interest. You can now confirm the match.";
             return RedirectToAction(nameof(MyInterests));
@@ -66,10 +55,8 @@ namespace BlindMatchPAS.Controllers
         // View projects supervisor expressed interest in
         public async Task<IActionResult> MyInterests()
         {
-            var supervisorId = _userManager.GetUserId(User);
-            var projects = await _context.Projects
-                .Where(p => p.SupervisorId == supervisorId)
-                .ToListAsync();
+            var supervisorId = _userManager.GetUserId(User)!;
+            var projects = await _projectService.GetSupervisorProjectsAsync(supervisorId);
             return View(projects);
         }
 
@@ -78,15 +65,14 @@ namespace BlindMatchPAS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ConfirmMatch(int id)
         {
-            var supervisorId = _userManager.GetUserId(User);
-            var project = await _context.Projects
-                .FirstOrDefaultAsync(p => p.Id == id && p.SupervisorId == supervisorId);
+            var supervisorId = _userManager.GetUserId(User)!;
+            var result = await _projectService.ConfirmMatchAsync(id, supervisorId);
 
-            if (project == null) return NotFound();
-
-            project.Status = "Matched";
-            project.IsRevealed = true;
-            await _context.SaveChangesAsync();
+            if (!result)
+            {
+                TempData["Error"] = "Unable to confirm match. Please try again.";
+                return RedirectToAction(nameof(MyInterests));
+            }
 
             TempData["Success"] = "Match confirmed! Student identity has been revealed.";
             return RedirectToAction(nameof(MyInterests));
@@ -95,11 +81,12 @@ namespace BlindMatchPAS.Controllers
         // View revealed student details after match
         public async Task<IActionResult> RevealedDetails(int id)
         {
-            var supervisorId = _userManager.GetUserId(User);
-            var project = await _context.Projects
-                .FirstOrDefaultAsync(p => p.Id == id && p.SupervisorId == supervisorId);
+            var supervisorId = _userManager.GetUserId(User)!;
+            var project = await _projectService.GetProjectByIdAsync(id);
 
-            if (project == null) return NotFound();
+            if (project == null || project.SupervisorId != supervisorId)
+                return NotFound();
+
             if (!project.IsRevealed)
             {
                 TempData["Error"] = "Identity not yet revealed for this project.";

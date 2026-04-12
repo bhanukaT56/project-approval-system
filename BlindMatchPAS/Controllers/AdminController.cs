@@ -1,33 +1,33 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using BlindMatchPAS.Data;
+using BlindMatchPAS.Services;
 using BlindMatchPAS.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace BlindMatchPAS.Controllers
 {
     [Authorize(Roles = "ModuleLeader,Admin")]
     public class AdminController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IProjectService _projectService;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
 
         public AdminController(
-            ApplicationDbContext context,
+            IProjectService projectService,
             UserManager<IdentityUser> userManager,
             RoleManager<IdentityRole> roleManager)
         {
-            _context = context;
+            _projectService = projectService;
             _userManager = userManager;
             _roleManager = roleManager;
         }
 
-        // Dashboard - view all matches
+        // Dashboard - view all projects and matches
         public async Task<IActionResult> Index()
         {
-            var projects = await _context.Projects.ToListAsync();
+            var projects = await _projectService.GetAllProjectsAsync();
             return View(projects);
         }
 
@@ -53,7 +53,8 @@ namespace BlindMatchPAS.Controllers
         // Create new user
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateUser(string email, string password, string role)
+        public async Task<IActionResult> CreateUser(string email,
+            string password, string role)
         {
             if (string.IsNullOrEmpty(email) ||
                 string.IsNullOrEmpty(password) ||
@@ -99,7 +100,7 @@ namespace BlindMatchPAS.Controllers
         // Reassign project to different supervisor
         public async Task<IActionResult> Reassign(int id)
         {
-            var project = await _context.Projects.FindAsync(id);
+            var project = await _projectService.GetProjectByIdAsync(id);
             if (project == null) return NotFound();
 
             var supervisors = await _userManager.GetUsersInRoleAsync("Supervisor");
@@ -112,13 +113,13 @@ namespace BlindMatchPAS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Reassign(int id, string supervisorId)
         {
-            var project = await _context.Projects.FindAsync(id);
+            var project = await _projectService.GetProjectByIdAsync(id);
             if (project == null) return NotFound();
 
             project.SupervisorId = supervisorId;
             project.Status = "Under Review";
             project.IsRevealed = false;
-            await _context.SaveChangesAsync();
+            await _projectService.UpdateProjectAsync(project);
 
             TempData["Success"] = "Project reassigned successfully.";
             return RedirectToAction(nameof(Index));

@@ -1,6 +1,8 @@
+using BlindMatchPAS.Data;
+using BlindMatchPAS.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using BlindMatchPAS.Data;
+using BlindMatchPAS.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +19,7 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
+builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
