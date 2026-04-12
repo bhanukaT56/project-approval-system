@@ -3,84 +3,146 @@
     ViewData["Title"] = "Browse Projects";
 }
 
-<h2>Browse Anonymous Project Proposals</h2>
-<p class="text-muted">Student identities are hidden until you confirm a match.</p>
-
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
-}
-
-<form method="get" asp-action="Index" class="mb-3">
-    <div class="input-group">
-        <select name="area" class="form-select">
-            <option value="">-- Filter by Research Area --</option>
-            <option value="Artificial Intelligence"
-                    selected="@(ViewBag.SelectedArea == "Artificial Intelligence")">
-                Artificial Intelligence
-            </option>
-            <option value="Web Development"
-                    selected="@(ViewBag.SelectedArea == "Web Development")">
-                Web Development
-            </option>
-            <option value="Cybersecurity"
-                    selected="@(ViewBag.SelectedArea == "Cybersecurity")">
-                Cybersecurity
-            </option>
-            <option value="Cloud Computing"
-                    selected="@(ViewBag.SelectedArea == "Cloud Computing")">
-                Cloud Computing
-            </option>
-            <option value="Machine Learning"
-                    selected="@(ViewBag.SelectedArea == "Machine Learning")">
-                Machine Learning
-            </option>
-            <option value="Data Science"
-                    selected="@(ViewBag.SelectedArea == "Data Science")">
-                Data Science
-            </option>
-            <option value="Mobile Development"
-                    selected="@(ViewBag.SelectedArea == "Mobile Development")">
-                Mobile Development
-            </option>
-        </select>
-        <button type="submit" class="btn btn-primary">Filter</button>
-        <a asp-action="Index" class="btn btn-secondary">Clear</a>
+<div class="container mt-4">
+    <div class="mb-4">
+        <h2 class="fw-bold">
+            <i class="bi bi-search text-primary"></i> Browse Project Proposals
+        </h2>
+        <p class="text-muted">
+            <i class="bi bi-eye-slash"></i>
+            Student identities are hidden until you confirm a match.
+        </p>
     </div>
-</form>
 
-@if (!Model.Any())
-{
-    <p>No projects available for your selected area.</p>
-}
-else
-{
-    <div class="row">
-        @foreach (var project in Model)
-        {
-            <div class="col-md-6 mb-3">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">@project.Title</h5>
-                        <span class="badge bg-primary mb-2">@project.ResearchArea</span>
-                        <p class="card-text text-muted">
-                            @(project.Abstract.Length > 100
-                                ? project.Abstract.Substring(0, 100) + "..."
-                                : project.Abstract)
-                        </p>
-                        <p><strong>Tech Stack:</strong> @project.TechnicalStack</p>
-                        <p class="text-warning"><strong>Student: Anonymous 🔒</strong></p>
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Search and Filter Form -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form method="get" asp-action="Index">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-search"></i> Search by Title
+                        </label>
+                        <input type="text" name="search" class="form-control"
+                               placeholder="Search project titles..."
+                               value="@ViewBag.SearchTerm" />
                     </div>
-                    <div class="card-footer">
-                        <a asp-action="ViewProject" asp-route-id="@project.Id"
-                           class="btn btn-sm btn-info">View Details</a>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-tag"></i> Filter by Research Area
+                        </label>
+                        <select name="area" class="form-select">
+                            <option value="">-- All Areas --</option>
+                            <option value="Artificial Intelligence"
+                                    selected="@(ViewBag.SelectedArea == "Artificial Intelligence")">
+                                Artificial Intelligence
+                            </option>
+                            <option value="Web Development"
+                                    selected="@(ViewBag.SelectedArea == "Web Development")">
+                                Web Development
+                            </option>
+                            <option value="Cybersecurity"
+                                    selected="@(ViewBag.SelectedArea == "Cybersecurity")">
+                                Cybersecurity
+                            </option>
+                            <option value="Cloud Computing"
+                                    selected="@(ViewBag.SelectedArea == "Cloud Computing")">
+                                Cloud Computing
+                            </option>
+                            <option value="Machine Learning"
+                                    selected="@(ViewBag.SelectedArea == "Machine Learning")">
+                                Machine Learning
+                            </option>
+                            <option value="Data Science"
+                                    selected="@(ViewBag.SelectedArea == "Data Science")">
+                                Data Science
+                            </option>
+                            <option value="Mobile Development"
+                                    selected="@(ViewBag.SelectedArea == "Mobile Development")">
+                                Mobile Development
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search"></i> Search
+                        </button>
                     </div>
                 </div>
-            </div>
-        }
+                @if (ViewBag.SelectedArea != null || ViewBag.SearchTerm != null)
+                {
+                    <div class="mt-2">
+                        <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Clear Filters
+                        </a>
+                    </div>
+                }
+            </form>
+        </div>
     </div>
-}
 
-<a asp-action="MyInterests" class="btn btn-outline-primary mt-3">
-    View My Interests
-</a>
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+            <h4 class="text-muted mt-3">No projects found</h4>
+            <p class="text-muted">Try adjusting your search or filter criteria.</p>
+            <a asp-action="Index" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-counterclockwise"></i> Clear Filters
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var project in Model)
+            {
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-header bg-white border-0 pt-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h5 class="card-title fw-bold mb-0">@project.Title</h5>
+                                <span class="badge bg-primary rounded-pill">
+                                    @project.ResearchArea
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small mb-2">
+                                <i class="bi bi-stack"></i> @project.TechnicalStack
+                            </p>
+                            <p class="card-text text-muted">
+                                @(project.Abstract.Length > 120
+                                    ? project.Abstract.Substring(0, 120) + "..."
+                                    : project.Abstract)
+                            </p>
+                            <p class="text-warning fw-bold small">
+                                <i class="bi bi-lock"></i> Student: Anonymous
+                            </p>
+                        </div>
+                        <div class="card-footer bg-white border-0 pb-3">
+                            <a asp-action="ViewProject" asp-route-id="@project.Id"
+                                   class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="mt-4">
+        <a asp-action="MyInterests" class="btn btn-outline-primary">
+            <i class="bi bi-heart"></i> My Interests
+        </a>
+    </div>
+</div>

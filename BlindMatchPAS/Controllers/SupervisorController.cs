@@ -19,10 +19,18 @@ namespace BlindMatchPAS.Controllers
         }
 
         // Blind browse - supervisor sees projects without student identity
-        public async Task<IActionResult> Index(string? area)
+        public async Task<IActionResult> Index(string? area, string? search)
         {
             var projects = await _projectService.GetAvailableProjectsAsync(area);
+
+            if (!string.IsNullOrEmpty(search))
+                projects = projects.Where(p =>
+                    p.Title.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                    p.Abstract.Contains(search, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
             ViewBag.SelectedArea = area;
+            ViewBag.SearchTerm = search;
             return View(projects);
         }
 
