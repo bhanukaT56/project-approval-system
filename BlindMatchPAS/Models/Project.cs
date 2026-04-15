@@ -31,7 +31,7 @@ namespace BlindMatchPAS.Models
         public string Status { get; set; } = "Pending";
 
         public string StudentId { get; set; } = string.Empty;
-
+        
         public string? SupervisorId { get; set; }
 
         public bool IsRevealed { get; set; } = false;

@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using BlindMatchPAS.Data;
 using BlindMatchPAS.Models;
 using Xunit;
@@ -17,7 +15,6 @@ namespace BlindMatchPAS.Tests
             return new ApplicationDbContext(options);
         }
 
-        // Test 1: Student can submit a project
         [Fact]
         public async Task Student_Can_Submit_Project()
         {
@@ -33,10 +30,8 @@ namespace BlindMatchPAS.Tests
                 IsRevealed = false,
                 CreatedAt = DateTime.Now
             };
-
             context.Projects.Add(project);
             await context.SaveChangesAsync();
-
             var saved = await context.Projects.FirstOrDefaultAsync(
                 p => p.StudentId == "student-123");
             Assert.NotNull(saved);
@@ -44,7 +39,6 @@ namespace BlindMatchPAS.Tests
             Assert.Equal("Pending", saved.Status);
         }
 
-        // Test 2: Project status is Pending by default
         [Fact]
         public async Task Project_Default_Status_Is_Pending()
         {
@@ -60,16 +54,13 @@ namespace BlindMatchPAS.Tests
                 IsRevealed = false,
                 CreatedAt = DateTime.Now
             };
-
             context.Projects.Add(project);
             await context.SaveChangesAsync();
-
             var saved = await context.Projects.FirstOrDefaultAsync(
                 p => p.StudentId == "student-456");
             Assert.Equal("Pending", saved!.Status);
         }
 
-        // Test 3: Supervisor can express interest
         [Fact]
         public async Task Supervisor_Can_Express_Interest()
         {
@@ -85,22 +76,17 @@ namespace BlindMatchPAS.Tests
                 IsRevealed = false,
                 CreatedAt = DateTime.Now
             };
-
             context.Projects.Add(project);
             await context.SaveChangesAsync();
-
-            // Supervisor expresses interest
             project.SupervisorId = "supervisor-123";
             project.Status = "Under Review";
             await context.SaveChangesAsync();
-
             var updated = await context.Projects.FirstOrDefaultAsync(
                 p => p.Id == project.Id);
             Assert.Equal("Under Review", updated!.Status);
             Assert.Equal("supervisor-123", updated.SupervisorId);
         }
 
-        // Test 4: Blind match - student identity hidden before reveal
         [Fact]
         public async Task Student_Identity_Hidden_Before_Reveal()
         {
@@ -116,16 +102,13 @@ namespace BlindMatchPAS.Tests
                 IsRevealed = false,
                 CreatedAt = DateTime.Now
             };
-
             context.Projects.Add(project);
             await context.SaveChangesAsync();
-
             var saved = await context.Projects.FirstOrDefaultAsync(
                 p => p.Id == project.Id);
             Assert.False(saved!.IsRevealed);
         }
 
-        // Test 5: Confirm match triggers identity reveal
         [Fact]
         public async Task Confirm_Match_Reveals_Identity()
         {
@@ -142,22 +125,17 @@ namespace BlindMatchPAS.Tests
                 IsRevealed = false,
                 CreatedAt = DateTime.Now
             };
-
             context.Projects.Add(project);
             await context.SaveChangesAsync();
-
-            // Confirm match
             project.Status = "Matched";
             project.IsRevealed = true;
             await context.SaveChangesAsync();
-
             var updated = await context.Projects.FirstOrDefaultAsync(
                 p => p.Id == project.Id);
             Assert.Equal("Matched", updated!.Status);
             Assert.True(updated.IsRevealed);
         }
 
-        // Test 6: Student cannot edit matched project
         [Fact]
         public async Task Student_Cannot_Edit_Matched_Project()
         {
@@ -173,19 +151,14 @@ namespace BlindMatchPAS.Tests
                 IsRevealed = true,
                 CreatedAt = DateTime.Now
             };
-
             context.Projects.Add(project);
             await context.SaveChangesAsync();
-
             var saved = await context.Projects.FirstOrDefaultAsync(
                 p => p.Id == project.Id);
-
-            // Only pending projects can be edited
             bool canEdit = saved!.Status == "Pending";
             Assert.False(canEdit);
         }
 
-        // Test 7: Student can withdraw pending project
         [Fact]
         public async Task Student_Can_Withdraw_Pending_Project()
         {
@@ -201,24 +174,19 @@ namespace BlindMatchPAS.Tests
                 IsRevealed = false,
                 CreatedAt = DateTime.Now
             };
-
             context.Projects.Add(project);
             await context.SaveChangesAsync();
-
             context.Projects.Remove(project);
             await context.SaveChangesAsync();
-
             var deleted = await context.Projects.FirstOrDefaultAsync(
                 p => p.StudentId == "student-withdraw");
             Assert.Null(deleted);
         }
 
-        // Test 8: Multiple projects can exist in system
         [Fact]
         public async Task Multiple_Projects_Can_Exist()
         {
             var context = GetInMemoryContext();
-
             context.Projects.AddRange(
                 new Project
                 {
@@ -243,11 +211,83 @@ namespace BlindMatchPAS.Tests
                     CreatedAt = DateTime.Now
                 }
             );
-
             await context.SaveChangesAsync();
-
             var count = await context.Projects.CountAsync();
             Assert.Equal(2, count);
+        }
+
+        // Test 9: NEW - Project search by title
+        [Fact]
+        public async Task Project_Search_By_Title_Works()
+        {
+            var context = GetInMemoryContext();
+            context.Projects.AddRange(
+                new Project
+                {
+                    Title = "AI Chatbot System",
+                    Abstract = "Building an AI chatbot using NLP techniques",
+                    TechnicalStack = "Python, NLTK",
+                    ResearchArea = "Artificial Intelligence",
+                    StudentId = "student-search-1",
+                    Status = "Pending",
+                    IsRevealed = false,
+                    CreatedAt = DateTime.Now
+                },
+                new Project
+                {
+                    Title = "Cloud Storage App",
+                    Abstract = "A cloud storage application using Azure",
+                    TechnicalStack = "Azure, C#",
+                    ResearchArea = "Cloud Computing",
+                    StudentId = "student-search-2",
+                    Status = "Pending",
+                    IsRevealed = false,
+                    CreatedAt = DateTime.Now
+                }
+            );
+            await context.SaveChangesAsync();
+            var results = await context.Projects
+                .Where(p => p.Title.Contains("AI"))
+                .ToListAsync();
+            Assert.Single(results);
+            Assert.Equal("AI Chatbot System", results[0].Title);
+        }
+
+        // Test 10: NEW - Filter by research area
+        [Fact]
+        public async Task Project_Filter_By_Area_Works()
+        {
+            var context = GetInMemoryContext();
+            context.Projects.AddRange(
+                new Project
+                {
+                    Title = "Security Scanner",
+                    Abstract = "A network security scanning tool",
+                    TechnicalStack = "Python",
+                    ResearchArea = "Cybersecurity",
+                    StudentId = "student-filter-1",
+                    Status = "Pending",
+                    IsRevealed = false,
+                    CreatedAt = DateTime.Now
+                },
+                new Project
+                {
+                    Title = "Mobile Banking App",
+                    Abstract = "A secure mobile banking application",
+                    TechnicalStack = "Flutter",
+                    ResearchArea = "Mobile Development",
+                    StudentId = "student-filter-2",
+                    Status = "Pending",
+                    IsRevealed = false,
+                    CreatedAt = DateTime.Now
+                }
+            );
+            await context.SaveChangesAsync();
+            var results = await context.Projects
+                .Where(p => p.ResearchArea == "Cybersecurity")
+                .ToListAsync();
+            Assert.Single(results);
+            Assert.Equal("Security Scanner", results[0].Title);
         }
     }
 }
