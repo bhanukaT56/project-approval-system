@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BlindMatchPAS.Models
 {
@@ -31,12 +32,19 @@ namespace BlindMatchPAS.Models
         public string Status { get; set; } = "Pending";
 
         public string StudentId { get; set; } = string.Empty;
-        
+
         public string? SupervisorId { get; set; }
 
         public bool IsRevealed { get; set; } = false;
 
         [Display(Name = "Submitted On")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        // Navigation Properties
+        [ForeignKey("StudentId")]
+        public UserProfile? StudentProfile { get; set; }
+
+        [ForeignKey("SupervisorId")]
+        public UserProfile? SupervisorProfile { get; set; }
     }
 }
