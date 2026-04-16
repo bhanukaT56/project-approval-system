@@ -14,10 +14,7 @@
         </p>
         @if (!User.Identity!.IsAuthenticated)
         {
-            <a asp-area="Identity" asp-page="/Account/Register"
-                   class="btn btn-light btn-lg me-2">
-                <i class="bi bi-person-plus"></i> Get Started
-            </a>
+            
             <a asp-area="Identity" asp-page="/Account/Login"
                    class="btn btn-outline-light btn-lg">
                 <i class="bi bi-box-arrow-in-right"></i> Login
