@@ -2,6 +2,10 @@
 using BlindMatchPAS.Data;
 using BlindMatchPAS.Models;
 using Xunit;
+using Moq;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace BlindMatchPAS.Tests
 {
@@ -288,6 +292,99 @@ namespace BlindMatchPAS.Tests
                 .ToListAsync();
             Assert.Single(results);
             Assert.Equal("Security Scanner", results[0].Title);
+        }
+
+        // Moq Test 1: Mock UserManager to verify student role assignment
+        [Fact]
+        public async Task MockUserManager_Can_Assign_Student_Role()
+        {
+            // Arrange
+            var mockUserStore = new Mock<IUserStore<IdentityUser>>();
+            var mockUserManager = new Mock<UserManager<IdentityUser>>(
+                mockUserStore.Object,
+                Mock.Of<IOptions<IdentityOptions>>(),
+                Mock.Of<IPasswordHasher<IdentityUser>>(),
+                new IUserValidator<IdentityUser>[0],
+                new IPasswordValidator<IdentityUser>[0],
+                Mock.Of<ILookupNormalizer>(),
+                Mock.Of<IdentityErrorDescriber>(),
+                Mock.Of<IServiceProvider>(),
+                Mock.Of<ILogger<UserManager<IdentityUser>>>()
+            );
+
+            var user = new IdentityUser
+            {
+                UserName = "student@test.com",
+                Email = "student@test.com"
+            };
+
+            mockUserManager
+                .Setup(m => m.CreateAsync(It.IsAny<IdentityUser>(),
+                    It.IsAny<string>()))
+                .ReturnsAsync(IdentityResult.Success);
+
+            mockUserManager
+                .Setup(m => m.AddToRoleAsync(It.IsAny<IdentityUser>(),
+                    It.IsAny<string>()))
+                .ReturnsAsync(IdentityResult.Success);
+
+            // Act
+            var createResult = await mockUserManager.Object
+                .CreateAsync(user, "Test@1234");
+            var roleResult = await mockUserManager.Object
+                .AddToRoleAsync(user, "Student");
+
+            // Assert
+            Assert.True(createResult.Succeeded);
+            Assert.True(roleResult.Succeeded);
+
+            mockUserManager.Verify(m => m.CreateAsync(
+                It.IsAny<IdentityUser>(),
+                It.IsAny<string>()), Times.Once);
+
+            mockUserManager.Verify(m => m.AddToRoleAsync(
+                It.IsAny<IdentityUser>(),
+                "Student"), Times.Once);
+        }
+
+        // Moq Test 2: Mock UserManager to verify user lookup
+        [Fact]
+        public async Task MockUserManager_Can_Find_User_By_Email()
+        {
+            // Arrange
+            var mockUserStore = new Mock<IUserStore<IdentityUser>>();
+            var mockUserManager = new Mock<UserManager<IdentityUser>>(
+                mockUserStore.Object,
+                Mock.Of<IOptions<IdentityOptions>>(),
+                Mock.Of<IPasswordHasher<IdentityUser>>(),
+                new IUserValidator<IdentityUser>[0],
+                new IPasswordValidator<IdentityUser>[0],
+                Mock.Of<ILookupNormalizer>(),
+                Mock.Of<IdentityErrorDescriber>(),
+                Mock.Of<IServiceProvider>(),
+                Mock.Of<ILogger<UserManager<IdentityUser>>>()
+            );
+
+            var expectedUser = new IdentityUser
+            {
+                UserName = "supervisor@test.com",
+                Email = "supervisor@test.com"
+            };
+
+            mockUserManager
+                .Setup(m => m.FindByEmailAsync("supervisor@test.com"))
+                .ReturnsAsync(expectedUser);
+
+            // Act
+            var result = await mockUserManager.Object
+                .FindByEmailAsync("supervisor@test.com");
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal("supervisor@test.com", result.Email);
+
+            mockUserManager.Verify(m => m.FindByEmailAsync(
+                "supervisor@test.com"), Times.Once);
         }
     }
 }
