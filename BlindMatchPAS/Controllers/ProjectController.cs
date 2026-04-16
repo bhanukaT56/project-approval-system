@@ -1,20 +1,26 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using BlindMatchPAS.Data;
 using BlindMatchPAS.Models;
 using BlindMatchPAS.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BlindMatchPAS.Controllers
 {
     [Authorize]
     public class ProjectController : Controller
     {
+        private readonly ApplicationDbContext _context;
         private readonly IProjectService _projectService;
         private readonly UserManager<IdentityUser> _userManager;
 
-        public ProjectController(IProjectService projectService,
-            UserManager<IdentityUser> userManager)
+        public ProjectController(
+     ApplicationDbContext context,
+     IProjectService projectService,
+     UserManager<IdentityUser> userManager)
         {
+            _context = context;
             _projectService = projectService;
             _userManager = userManager;
         }
@@ -114,6 +120,18 @@ namespace BlindMatchPAS.Controllers
             var project = await _projectService.GetProjectByIdAsync(id);
             if (project == null || project.StudentId != userId)
                 return NotFound();
+
+            if (project.IsRevealed && project.SupervisorId != null)
+            {
+                var supervisor = await _userManager.FindByIdAsync(project.SupervisorId);
+                var supervisorProfile = await _context.UserProfiles
+                    .FirstOrDefaultAsync(p => p.UserId == project.SupervisorId);
+
+                ViewBag.SupervisorEmail = supervisor?.Email;
+                ViewBag.SupervisorFullName = supervisorProfile?.FullName ?? "Not provided";
+                ViewBag.SupervisorDepartment = supervisorProfile?.Department ?? "Not provided";
+            }
+
             return View(project);
         }
     }
