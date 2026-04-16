@@ -12,5 +12,6 @@ namespace BlindMatchPAS.Data
         }
 
         public DbSet<Project> Projects { get; set; }
+        public DbSet<UserProfile> UserProfiles { get; set; }
     }
 }
