@@ -40,11 +40,19 @@ namespace BlindMatchPAS.Controllers
         {
             var users = await _userManager.Users.ToListAsync();
             var userRoles = new Dictionary<string, IList<string>>();
+            var userProfiles = new Dictionary<string, UserProfile>();
+
             foreach (var user in users)
             {
                 userRoles[user.Id] = await _userManager.GetRolesAsync(user);
+                var profile = await _context.UserProfiles
+                    .FirstOrDefaultAsync(p => p.UserId == user.Id);
+                if (profile != null)
+                    userProfiles[user.Id] = profile;
             }
+
             ViewBag.UserRoles = userRoles;
+            ViewBag.UserProfiles = userProfiles;
             return View(users);
         }
 
