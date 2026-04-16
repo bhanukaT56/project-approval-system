@@ -1,19 +1,25 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using BlindMatchPAS.Data;
+using BlindMatchPAS.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using BlindMatchPAS.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace BlindMatchPAS.Controllers
 {
     [Authorize(Roles = "Supervisor")]
     public class SupervisorController : Controller
     {
+        private readonly ApplicationDbContext _context;
         private readonly IProjectService _projectService;
         private readonly UserManager<IdentityUser> _userManager;
 
-        public SupervisorController(IProjectService projectService,
-            UserManager<IdentityUser> userManager)
+        public SupervisorController(
+     ApplicationDbContext context,
+     IProjectService projectService,
+     UserManager<IdentityUser> userManager)
         {
+            _context = context;
             _projectService = projectService;
             _userManager = userManager;
         }
@@ -102,8 +108,13 @@ namespace BlindMatchPAS.Controllers
             }
 
             var student = await _userManager.FindByIdAsync(project.StudentId);
+            var studentProfile = await _context.UserProfiles
+                .FirstOrDefaultAsync(p => p.UserId == project.StudentId);
+
             ViewBag.StudentEmail = student?.Email;
-            ViewBag.StudentId = project.StudentId;
+            ViewBag.StudentFullName = studentProfile?.FullName ?? "Not provided";
+            ViewBag.StudentBatch = studentProfile?.Batch ?? "Not provided";
+            ViewBag.StudentDegreeProgram = studentProfile?.DegreeProgram ?? "Not provided";
 
             return View(project);
         }
