@@ -118,5 +118,15 @@ app.MapControllerRoute(
     .WithStaticAssets();
 
 app.MapRazorPages();
+app.MapGet("/Identity/Account/Register", context =>
+{
+    context.Response.Redirect("/Identity/Account/Login");
+    return Task.CompletedTask;
+});
+app.MapPost("/Identity/Account/Register", context =>
+{
+    context.Response.Redirect("/Identity/Account/Login");
+    return Task.CompletedTask;
+});
 
 app.Run();
