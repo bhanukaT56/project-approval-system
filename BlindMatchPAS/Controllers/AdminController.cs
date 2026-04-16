@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using BlindMatchPAS.Data;
+using BlindMatchPAS.Models;
+using BlindMatchPAS.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using BlindMatchPAS.Services;
-using BlindMatchPAS.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlindMatchPAS.Controllers
@@ -10,15 +11,18 @@ namespace BlindMatchPAS.Controllers
     [Authorize(Roles = "ModuleLeader,Admin")]
     public class AdminController : Controller
     {
+        private readonly ApplicationDbContext _context;
         private readonly IProjectService _projectService;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
 
         public AdminController(
+            ApplicationDbContext context,
             IProjectService projectService,
             UserManager<IdentityUser> userManager,
             RoleManager<IdentityRole> roleManager)
         {
+            _context = context;
             _projectService = projectService;
             _userManager = userManager;
             _roleManager = roleManager;
@@ -54,13 +58,15 @@ namespace BlindMatchPAS.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUser(string email,
-            string password, string role)
+      string password, string role, string fullName,
+      string? batch, string? degreeProgram, string? department)
         {
             if (string.IsNullOrEmpty(email) ||
                 string.IsNullOrEmpty(password) ||
-                string.IsNullOrEmpty(role))
+                string.IsNullOrEmpty(role) ||
+                string.IsNullOrEmpty(fullName))
             {
-                TempData["Error"] = "All fields are required.";
+                TempData["Error"] = "All required fields must be filled.";
                 return View();
             }
 
@@ -75,6 +81,19 @@ namespace BlindMatchPAS.Controllers
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(user, role);
+
+                // Save user profile
+                var profile = new UserProfile
+                {
+                    UserId = user.Id,
+                    FullName = fullName,
+                    Batch = batch,
+                    DegreeProgram = degreeProgram,
+                    Department = department
+                };
+                _context.UserProfiles.Add(profile);
+                await _context.SaveChangesAsync();
+
                 TempData["Success"] = $"User {email} created successfully as {role}.";
                 return RedirectToAction(nameof(Users));
             }
