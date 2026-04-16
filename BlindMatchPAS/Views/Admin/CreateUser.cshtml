@@ -2,43 +2,119 @@
     ViewData["Title"] = "Create User";
 }
 
-<h2>Create New User</h2>
-
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
-}
-
-<form asp-action="CreateUser" method="post">
-    @Html.AntiForgeryToken()
-
-    <div class="mb-3">
-        <label class="form-label">Email Address</label>
-        <input type="email" name="email" class="form-control"
-               placeholder="Enter email address" required />
+<div class="container mt-4">
+    <div class="mb-4">
+        <h2 class="fw-bold">
+            <i class="bi bi-person-plus text-primary"></i> Create New User
+        </h2>
+        <p class="text-muted">Create a new user account and assign a role</p>
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">Password</label>
-        <input type="password" name="password" class="form-control"
-               placeholder="Enter password" required />
-        <div class="form-text">
-            Password must be at least 6 characters, contain uppercase,
-            lowercase, number and special character.
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-    </div>
+    }
 
-    <div class="mb-3">
-        <label class="form-label">Role</label>
-        <select name="role" class="form-select" required>
-            <option value="">-- Select Role --</option>
-            <option value="Student">Student</option>
-            <option value="Supervisor">Supervisor</option>
-            <option value="ModuleLeader">Module Leader</option>
-            <option value="Admin">Admin</option>
-        </select>
-    </div>
+    <div class="card shadow-sm border-0 p-4">
+        <form asp-action="CreateUser" method="post">
+            @Html.AntiForgeryToken()
 
-    <button type="submit" class="btn btn-primary">Create User</button>
-    <a asp-action="Users" class="btn btn-secondary">Cancel</a>
-</form>
+            <h5 class="fw-bold mb-3">
+                <i class="bi bi-lock"></i> Account Details
+            </h5>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Email Address <span class="text-danger">*</span></label>
+                <input type="email" name="email" class="form-control"
+                       placeholder="Enter email address" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Password <span class="text-danger">*</span></label>
+                <input type="password" name="password" class="form-control"
+                       placeholder="Enter password" required />
+                <div class="form-text">
+                    Must be at least 6 characters with uppercase,
+                    lowercase, number and special character.
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Role <span class="text-danger">*</span></label>
+                <select name="role" class="form-select" required id="roleSelect">
+                    <option value="">-- Select Role --</option>
+                    <option value="Student">Student</option>
+                    <option value="Supervisor">Supervisor</option>
+                    <option value="ModuleLeader">Module Leader</option>
+                    <option value="Admin">Admin</option>
+                </select>
+            </div>
+
+            <hr class="my-4" />
+
+            <h5 class="fw-bold mb-3">
+                <i class="bi bi-person"></i> Profile Details
+            </h5>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Full Name <span class="text-danger">*</span></label>
+                <input type="text" name="fullName" class="form-control"
+                       placeholder="Enter full name" required />
+            </div>
+
+            <!-- Student Fields -->
+            <div id="studentFields">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Batch</label>
+                    <input type="text" name="batch" class="form-control"
+                           placeholder="e.g. 2022/2023" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Degree Program</label>
+                    <input type="text" name="degreeProgram" class="form-control"
+                           placeholder="e.g. BSc Computer Science" />
+                </div>
+            </div>
+
+            <!-- Supervisor Fields -->
+            <div id="supervisorFields" style="display:none;">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Department</label>
+                    <input type="text" name="department" class="form-control"
+                           placeholder="e.g. Department of Computer Science" />
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="bi bi-person-plus"></i> Create User
+                </button>
+                <a asp-action="Users" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('roleSelect').addEventListener('change', function() {
+        var role = this.value;
+        var studentFields = document.getElementById('studentFields');
+        var supervisorFields = document.getElementById('supervisorFields');
+
+        if (role === 'Student') {
+            studentFields.style.display = 'block';
+            supervisorFields.style.display = 'none';
+        } else if (role === 'Supervisor') {
+            studentFields.style.display = 'none';
+            supervisorFields.style.display = 'block';
+        } else {
+            studentFields.style.display = 'none';
+            supervisorFields.style.display = 'none';
+        }
+    });
+</script>
