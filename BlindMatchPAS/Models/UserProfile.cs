@@ -21,5 +21,9 @@ namespace BlindMatchPAS.Models
 
         [Display(Name = "Department")]
         public string? Department { get; set; }
+
+        // Navigation Properties
+        public ICollection<Project>? StudentProjects { get; set; }
+        public ICollection<Project>? SupervisorProjects { get; set; }
     }
 }
