@@ -3,75 +3,128 @@
     ViewData["Title"] = "Manage Users";
 }
 
-<h2>👥 Manage Users</h2>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0">
+                <i class="bi bi-people text-primary"></i> Manage Users
+            </h2>
+            <p class="text-muted">Create and manage system users and their roles</p>
+        </div>
+        <a asp-action="CreateUser" class="btn btn-primary">
+            <i class="bi bi-person-plus"></i> Create New User
+        </a>
+    </div>
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">@TempData["Success"]</div>
-}
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
-}
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
-<a asp-action="CreateUser" class="btn btn-primary mb-3">
-    + Create New User
-</a>
-
-@if (!Model.Any())
-{
-    <p>No users in the system yet.</p>
-}
-else
-{
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-people text-muted" style="font-size: 4rem;"></i>
+            <h4 class="text-muted mt-3">No users found</h4>
+            <p class="text-muted">Create your first user to get started.</p>
+            <a asp-action="CreateUser" class="btn btn-primary">
+                <i class="bi bi-person-plus"></i> Create User
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
             @foreach (var user in Model)
             {
-                <tr>
-                    <td>@user.Email</td>
-                    <td>
-                        @if (ViewBag.UserRoles != null &&
-                                                     ViewBag.UserRoles.ContainsKey(user.Id))
-                        {
-                            var roles = ViewBag.UserRoles[user.Id] as IList<string>;
-                            if (roles != null && roles.Any())
-                            {
-                                foreach (var role in roles)
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="rounded-circle bg-primary text-white d-flex 
+                                    align-items-center justify-content-center me-3"
+                                    style="width:45px; height:45px; font-size:1.2rem;">
+                                    <i class="bi bi-person"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-0">@user.Email</h6>
+                                    <small class="text-muted">
+                                        @(user.EmailConfirmed ? "✅ Verified" : "⚠️ Unverified")
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                @if (ViewBag.UserRoles != null &&
+                                     ViewBag.UserRoles.ContainsKey(user.Id))
                                 {
-                                    <span class="badge bg-primary me-1">@role</span>
+                                    var roles = ViewBag.UserRoles[user.Id] 
+                                        as IList<string>;
+                                    if (roles != null && roles.Any())
+                                    {
+                                        foreach (var role in roles)
+                                        {
+                                            <span class="badge rounded-pill me-1
+                                                @(role == "Admin" ? "bg-danger" :
+                                                  role == "Supervisor" ? "bg-success" :
+                                                  role == "ModuleLeader" ? "bg-warning text-dark" :
+                                                  "bg-primary")">
+                                                @if (role == "Admin")
+                                                {
+                                                    <i class="bi bi-shield"></i>
+                                                }
+                                                else if (role == "Supervisor")
+                                                {
+                                                    <i class="bi bi-person-check"></i>
+                                                }
+                                                else if (role == "ModuleLeader")
+                                                {
+                                                    <i class="bi bi-star"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="bi bi-mortarboard"></i>
+                                                }
+                                                @role
+                                            </span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">No Role</span>
+                                    }
                                 }
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">No Role</span>
-                            }
-                        }
-                    </td>
-                    <td>
-                        <form asp-action="DeleteUser" method="post" class="d-inline">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="id" value="@user.Id" />
-                            <button type="submit" class="btn btn-sm btn-danger"
-                                    onclick="return confirm('Are you sure you want to delete this user?')">
-                                🗑 Delete
-                            </button>
-                        </form>
-                    </td>
-                </tr>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-0 pb-3">
+                            <form asp-action="DeleteUser" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@user.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                    onclick="return confirm('Delete this user?')">
+                                    <i class="bi bi-trash"></i> Delete User
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             }
-        </tbody>
-    </table>
-}
+        </div>
+    }
 
-<a asp-action="Index" class="btn btn-secondary mt-3">
-    Back to Dashboard
-</a>
+    <div class="mt-4">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
