@@ -3,88 +3,142 @@
     ViewData["Title"] = "Admin Dashboard";
 }
 
-<h2>📊 Admin Dashboard</h2>
-<p class="text-muted">Overview of all project allocations.</p>
+<div class="container mt-4">
+    <div class="mb-4">
+        <h2 class="fw-bold mb-0">
+            <i class="bi bi-speedometer2 text-primary"></i> Admin Dashboard
+        </h2>
+        <p class="text-muted">Overview of all project allocations</p>
+    </div>
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">@TempData["Success"]</div>
-}
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card text-white bg-primary p-3">
-            <h5>Total Projects</h5>
-            <h2>@Model.Count()</h2>
+    <!-- Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-white bg-primary p-3">
+                <h6 class="mb-1">Total Projects</h6>
+                <h2 class="mb-0">@Model.Count()</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-white bg-secondary p-3">
+                <h6 class="mb-1">Pending</h6>
+                <h2 class="mb-0">@Model.Count(p => p.Status == "Pending")</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-white bg-warning p-3">
+                <h6 class="mb-1">Under Review</h6>
+                <h2 class="mb-0">@Model.Count(p => p.Status == "Under Review")</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-white bg-success p-3">
+                <h6 class="mb-1">Matched</h6>
+                <h2 class="mb-0">@Model.Count(p => p.Status == "Matched")</h2>
+            </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-warning p-3">
-            <h5>Pending</h5>
-            <h2>@Model.Count(p => p.Status == "Pending")</h2>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Title</th>
+                        <th>Research Area</th>
+                        <th>Status</th>
+                        <th>Student Details</th>
+                        <th>Supervisor Details</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var project in Model)
+                    {
+                        var studentProfile = ViewBag.UserProfiles != null &&
+                            ViewBag.UserProfiles.ContainsKey(project.StudentId)
+                            ? ViewBag.UserProfiles[project.StudentId] as BlindMatchPAS.Models.UserProfile
+                            : null;
+
+                        var supervisorProfile = project.SupervisorId != null &&
+                            ViewBag.UserProfiles != null &&
+                            ViewBag.UserProfiles.ContainsKey(project.SupervisorId)
+                            ? ViewBag.UserProfiles[project.SupervisorId] as BlindMatchPAS.Models.UserProfile
+                            : null;
+
+                        <tr>
+                            <td class="ps-4 fw-bold">@project.Title</td>
+                            <td>
+                                <span class="badge bg-primary">
+                                    @project.ResearchArea
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge rounded-pill
+                                    @(project.Status == "Matched" ? "bg-success" :
+                                                                            project.Status == "Under Review" ? "bg-warning text-dark" :
+                                                                            "bg-secondary")">
+                                    @project.Status
+                                </span>
+                            </td>
+                            <td>
+                                @if (studentProfile != null)
+                                {
+                                    <div>
+                                        <strong>@studentProfile.FullName</strong><br />
+                                        <small class="text-muted">
+                                            @studentProfile.Batch
+                                        </small><br />
+                                        <small class="badge bg-light text-dark">
+                                            @studentProfile.StudentNumber
+                                        </small>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
+                            <td>
+                                @if (supervisorProfile != null)
+                                {
+                                    <div>
+                                        <strong>@supervisorProfile.FullName</strong><br />
+                                        <small class="text-muted">
+                                            @supervisorProfile.Department
+                                        </small><br />
+                                        <small class="badge bg-light text-dark">
+                                            @supervisorProfile.SupervisorNumber
+                                        </small>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Not assigned</span>
+                                }
+                            </td>
+                            <td>
+                                <a asp-action="Reassign" asp-route-id="@project.Id"
+                                       class="btn btn-sm btn-outline-warning">
+                                    <i class="bi bi-arrow-repeat"></i> Reassign
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-info p-3">
-            <h5>Under Review</h5>
-            <h2>@Model.Count(p => p.Status == "Under Review")</h2>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-success p-3">
-            <h5>Matched</h5>
-            <h2>@Model.Count(p => p.Status == "Matched")</h2>
-        </div>
-    </div>
+
+    <a asp-action="Users" class="btn btn-primary mt-4">
+        <i class="bi bi-people"></i> Manage Users
+    </a>
 </div>
-
-<h4>All Projects</h4>
-
-@if (!Model.Any())
-{
-    <p>No projects in the system yet.</p>
-}
-else
-{
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Research Area</th>
-                <th>Status</th>
-                <th>Student ID</th>
-                <th>Supervisor ID</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var project in Model)
-            {
-                <tr>
-                    <td>@project.Title</td>
-                    <td>@project.ResearchArea</td>
-                    <td>
-                        <span class="badge
-                            @(project.Status == "Matched" ? "bg-success" :
-                                                            project.Status == "Under Review" ? "bg-warning" :
-                                                            "bg-secondary")">
-                            @project.Status
-                        </span>
-                    </td>
-                    <td>@project.StudentId</td>
-                    <td>@(project.SupervisorId ?? "Not assigned")</td>
-                    <td>
-                        <a asp-action="Reassign" asp-route-id="@project.Id"
-                               class="btn btn-sm btn-warning">
-                            🔄 Reassign
-                        </a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-
-<a asp-action="Users" class="btn btn-primary mt-3">
-    👥 Manage Users
-</a>

@@ -29,9 +29,33 @@ namespace BlindMatchPAS.Controllers
         }
 
         // Dashboard - view all projects and matches
+        // Dashboard - view all projects and matches
         public async Task<IActionResult> Index()
         {
             var projects = await _projectService.GetAllProjectsAsync();
+            var userProfiles = new Dictionary<string, UserProfile>();
+
+            foreach (var project in projects)
+            {
+                if (!userProfiles.ContainsKey(project.StudentId))
+                {
+                    var studentProfile = await _context.UserProfiles
+                        .FirstOrDefaultAsync(p => p.UserId == project.StudentId);
+                    if (studentProfile != null)
+                        userProfiles[project.StudentId] = studentProfile;
+                }
+
+                if (project.SupervisorId != null &&
+                    !userProfiles.ContainsKey(project.SupervisorId))
+                {
+                    var supervisorProfile = await _context.UserProfiles
+                        .FirstOrDefaultAsync(p => p.UserId == project.SupervisorId);
+                    if (supervisorProfile != null)
+                        userProfiles[project.SupervisorId] = supervisorProfile;
+                }
+            }
+
+            ViewBag.UserProfiles = userProfiles;
             return View(projects);
         }
 
