@@ -67,6 +67,7 @@ namespace BlindMatchPAS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUser(string email,
       string password, string role, string fullName,
+      string? studentNumber, string? supervisorNumber,
       string? batch, string? degreeProgram, string? department)
         {
             if (string.IsNullOrEmpty(email) ||
@@ -90,11 +91,12 @@ namespace BlindMatchPAS.Controllers
             {
                 await _userManager.AddToRoleAsync(user, role);
 
-                // Save user profile
                 var profile = new UserProfile
                 {
                     UserId = user.Id,
                     FullName = fullName,
+                    StudentNumber = studentNumber,
+                    SupervisorNumber = supervisorNumber,
                     Batch = batch,
                     DegreeProgram = degreeProgram,
                     Department = department
