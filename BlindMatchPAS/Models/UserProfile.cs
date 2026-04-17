@@ -13,6 +13,12 @@ namespace BlindMatchPAS.Models
         [Display(Name = "Full Name")]
         public string FullName { get; set; } = string.Empty;
 
+        [Display(Name = "Student ID")]
+        public string? StudentNumber { get; set; }
+
+        [Display(Name = "Supervisor ID")]
+        public string? SupervisorNumber { get; set; }
+
         [Display(Name = "Batch")]
         public string? Batch { get; set; }
 
