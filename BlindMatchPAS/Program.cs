@@ -33,7 +33,7 @@ using (var scope = app.Services.CreateScope())
         .GetRequiredService<UserManager<IdentityUser>>();
 
     // Seed Roles
-    string[] roles = { "Student", "Supervisor", "ModuleLeader", "Admin" };
+    string[] roles = { "Student", "Supervisor", "Admin" };
     foreach (var role in roles)
     {
         if (!await roleManager.RoleExistsAsync(role))

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BlindMatchPAS.Controllers
 {
-    [Authorize(Roles = "ModuleLeader,Admin")]
+    [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
         private readonly ApplicationDbContext _context;
