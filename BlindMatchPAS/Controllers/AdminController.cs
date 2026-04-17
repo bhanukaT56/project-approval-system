@@ -28,7 +28,7 @@ namespace BlindMatchPAS.Controllers
             _roleManager = roleManager;
         }
 
-        // Dashboard - view all projects and matches
+       
         // Dashboard - view all projects and matches
         public async Task<IActionResult> Index()
         {
@@ -136,6 +136,55 @@ namespace BlindMatchPAS.Controllers
                 ModelState.AddModelError("", error.Description);
 
             return View();
+        }
+
+        // Edit user form
+        public async Task<IActionResult> EditUser(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            var profile = await _context.UserProfiles
+                .FirstOrDefaultAsync(p => p.UserId == id);
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var role = roles.FirstOrDefault() ?? "";
+
+            ViewBag.UserId = id;
+            ViewBag.Email = user.Email;
+            ViewBag.Role = role;
+
+            return View(profile ?? new UserProfile { UserId = id });
+        }
+
+        // Save edited user
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditUser(string userId,
+            string fullName, string? studentNumber,
+            string? supervisorNumber, string? batch,
+            string? degreeProgram, string? department)
+        {
+            var profile = await _context.UserProfiles
+                .FirstOrDefaultAsync(p => p.UserId == userId);
+
+            if (profile == null)
+            {
+                profile = new UserProfile { UserId = userId };
+                _context.UserProfiles.Add(profile);
+            }
+
+            profile.FullName = fullName;
+            profile.StudentNumber = studentNumber;
+            profile.SupervisorNumber = supervisorNumber;
+            profile.Batch = batch;
+            profile.DegreeProgram = degreeProgram;
+            profile.Department = department;
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "User updated successfully.";
+            return RedirectToAction(nameof(Users));
         }
 
         // Delete user
