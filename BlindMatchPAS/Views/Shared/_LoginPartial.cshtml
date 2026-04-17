@@ -1,14 +1,19 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
+@inject BlindMatchPAS.Data.ApplicationDbContext DbContext
 
 <ul class="navbar-nav">
     @if (SignInManager.IsSignedIn(User))
     {
+        var userId = UserManager.GetUserId(User);
+        var profile = DbContext.UserProfiles.FirstOrDefault(p => p.UserId == userId);
+        var displayName = profile?.FullName ?? UserManager.GetUserName(User);
+
         <li class="nav-item">
             <span class="nav-link text-white">
                 <i class="bi bi-person-circle"></i>
-                Hello @UserManager.GetUserName(User)!
+                Hello @displayName!
             </span>
         </li>
         <li class="nav-item">
@@ -23,7 +28,6 @@
     }
     else
     {
-       
         <li class="nav-item">
             <a class="nav-link text-white" asp-area="Identity" asp-page="/Account/Login">
                 <i class="bi bi-box-arrow-in-right"></i> Login
