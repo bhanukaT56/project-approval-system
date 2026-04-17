@@ -44,7 +44,6 @@
                         <option value="">-- All Roles --</option>
                         <option value="Student">Student</option>
                         <option value="Supervisor">Supervisor</option>
-                        <option value="ModuleLeader">Module Leader</option>
                         <option value="Admin">Admin</option>
                     </select>
                 </div>
@@ -84,6 +83,7 @@
                         <tr>
                             <th class="ps-4">Full Name</th>
                             <th>Email</th>
+                            <th>ID Number</th>
                             <th>Role</th>
                             <th>Batch</th>
                             <th>Degree / Department</th>
@@ -108,6 +108,10 @@
                                 ? string.Join(", ", roles)
                                 : "No Role";
 
+                            var idNumber = profile?.StudentNumber
+                                ?? profile?.SupervisorNumber
+                                ?? "—";
+
                             <tr class="user-row"
                                 data-role="@roleStr"
                                 data-name="@(profile?.FullName ?? "")"
@@ -116,13 +120,18 @@
                                     <div class="d-flex align-items-center">
                                         <div class="rounded-circle bg-primary text-white
                                             d-flex align-items-center justify-content-center me-2"
-                                             style="width:35px; height:35px; font-size:0.9rem;">
+                                             style="width:35px; height:35px;">
                                             <i class="bi bi-person"></i>
                                         </div>
                                         @(profile?.FullName ?? "N/A")
                                     </div>
                                 </td>
                                 <td>@user.Email</td>
+                                <td>
+                                    <span class="badge bg-light text-dark">
+                                        @idNumber
+                                    </span>
+                                </td>
                                 <td>
                                     @if (roles != null && roles.Any())
                                     {
@@ -131,7 +140,6 @@
                                             <span class="badge rounded-pill
                                                 @(role == "Admin" ? "bg-danger" :
                                                                                                     role == "Supervisor" ? "bg-success" :
-                                                                                                    role == "ModuleLeader" ? "bg-warning text-dark" :
                                                                                                     "bg-primary")">
                                                 @role
                                             </span>
@@ -172,6 +180,10 @@
                                     }
                                 </td>
                                 <td>
+                                    <a asp-action="EditUser" asp-route-id="@user.Id"
+                                           class="btn btn-sm btn-outline-primary me-1">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </a>
                                     <form asp-action="DeleteUser" method="post"
                                           class="d-inline">
                                         @Html.AntiForgeryToken()
@@ -203,7 +215,7 @@
         var searchFilter = document.getElementById('searchFilter').value.toLowerCase();
         var rows = document.querySelectorAll('.user-row');
 
-        rows.forEach(function(row) {
+        rows.forEach(function (row) {
             var role = row.getAttribute('data-role').toLowerCase();
             var name = row.getAttribute('data-name').toLowerCase();
             var email = row.getAttribute('data-email').toLowerCase();
