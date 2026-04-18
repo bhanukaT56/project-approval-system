@@ -1,0 +1,79 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Log in";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card shadow-sm border-0 p-4">
+            <h2 class="fw-bold mb-1 text-center">
+                <i class="bi bi-shield-lock text-primary"></i> BlindMatch
+            </h2>
+            <p class="text-muted text-center mb-4">Sign in to your account</p>
+
+            <form id="account" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Input.Email" class="form-label fw-bold">Email Address</label>
+                    <input asp-for="Input.Email" class="form-control"
+                           autocomplete="username"
+                           aria-required="true"
+                           placeholder="name@example.com" />
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Input.Password" class="form-label fw-bold">Password</label>
+                    <div class="input-group">
+                        <input asp-for="Input.Password" class="form-control"
+                               autocomplete="current-password"
+                               aria-required="true"
+                               id="passwordInput"
+                               placeholder="Enter your password" />
+                        <button class="btn btn-outline-secondary" type="button"
+                                onclick="togglePasswordVisibility()">
+                            <i class="bi bi-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Input.RememberMe" class="form-label">
+                        <input class="form-check-input" asp-for="Input.RememberMe" />
+                        @Html.DisplayNameFor(m => m.Input.RememberMe)
+                    </label>
+                </div>
+
+                <div>
+                    <button id="login-submit" type="submit"
+                            class="w-100 btn btn-lg btn-primary">
+                        <i class="bi bi-box-arrow-in-right"></i> Log in
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function togglePasswordVisibility() {
+            var input = document.getElementById('passwordInput');
+            var icon = document.getElementById('eyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        }
+    </script>
+}
