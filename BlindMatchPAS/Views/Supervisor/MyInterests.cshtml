@@ -50,9 +50,17 @@ else
                             <form asp-action="ConfirmMatch" method="post" class="d-inline">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="id" value="@project.Id" />
-                                <button type="submit" class="btn btn-sm btn-success"
+                                <button type="submit" class="btn btn-sm btn-success me-1"
                                         onclick="return confirm('Confirm match? This will reveal student identity.')">
-                                    ✅ Confirm Match
+                                    <i class="bi bi-check-circle"></i> Confirm Match
+                                </button>
+                            </form>
+                            <form asp-action="WithdrawInterest" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@project.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Are you sure you want to withdraw your interest? The project will return to Pending.')">
+                                    <i class="bi bi-x-circle"></i> Withdraw Interest
                                 </button>
                             </form>
                         }

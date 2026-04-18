@@ -92,6 +92,31 @@ namespace BlindMatchPAS.Controllers
             return RedirectToAction(nameof(MyInterests));
         }
 
+        // Withdraw interest from a project
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> WithdrawInterest(int id)
+        {
+            var supervisorId = _userManager.GetUserId(User)!;
+            var project = await _projectService.GetProjectByIdAsync(id);
+
+            if (project == null || project.SupervisorId != supervisorId)
+                return NotFound();
+
+            if (project.Status != "Under Review")
+            {
+                TempData["Error"] = "You can only withdraw interest from projects under review.";
+                return RedirectToAction(nameof(MyInterests));
+            }
+
+            project.Status = "Pending";
+            project.SupervisorId = null;
+            await _projectService.UpdateProjectAsync(project);
+
+            TempData["Success"] = "You have successfully withdrawn your interest. The project is back to Pending.";
+            return RedirectToAction(nameof(MyInterests));
+        }
+
         // View revealed student details after match
         public async Task<IActionResult> RevealedDetails(int id)
         {
