@@ -45,7 +45,7 @@ namespace BlindMatchPAS.Controllers
         [HttpPost]
         [Authorize(Roles = "Student")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Project project)
+        public async Task<IActionResult> Create(Project project, IFormFile? proposalFile)
         {
             if (ModelState.IsValid)
             {
@@ -53,10 +53,42 @@ namespace BlindMatchPAS.Controllers
                 project.Status = "Pending";
                 project.IsRevealed = false;
                 project.CreatedAt = DateTime.Now;
+
+                if (proposalFile != null && proposalFile.Length > 0)
+                {
+                    if (proposalFile.ContentType != "application/pdf")
+                    {
+                        ModelState.AddModelError("", "Only PDF files are allowed.");
+                        return View(project);
+                    }
+
+                    if (proposalFile.Length > 5 * 1024 * 1024)
+                    {
+                        ModelState.AddModelError("", "File size must be less than 5MB.");
+                        return View(project);
+                    }
+
+                    using var ms = new MemoryStream();
+                    await proposalFile.CopyToAsync(ms);
+                    project.ProposalFile = ms.ToArray();
+                    project.ProposalFileName = proposalFile.FileName;
+                }
+
                 await _projectService.CreateProjectAsync(project);
                 return RedirectToAction(nameof(Index));
             }
             return View(project);
+        }
+        // Download proposal PDF
+        [Authorize]
+        public async Task<IActionResult> DownloadProposal(int id)
+        {
+            var project = await _projectService.GetProjectByIdAsync(id);
+            if (project == null || project.ProposalFile == null)
+                return NotFound();
+
+            return File(project.ProposalFile, "application/pdf",
+                project.ProposalFileName ?? "proposal.pdf");
         }
 
         // Student: Edit proposal
