@@ -5,7 +5,7 @@
 
 <h2>Submit a New Project Proposal</h2>
 
-<form asp-action="Create" method="post">
+<form asp-action="Create" method="post" enctype="multipart/form-data">
     @Html.AntiForgeryToken()
     
     <div class="mb-3">
@@ -41,6 +41,19 @@
             <option value="Mobile Development">Mobile Development</option>
         </select>
         <span asp-validation-for="ResearchArea" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label fw-bold">
+            <i class="bi bi-file-earmark-pdf text-danger"></i>
+            Project Proposal Document (PDF)
+        </label>
+        <input type="file" name="proposalFile" class="form-control"
+               accept=".pdf" />
+        <div class="form-text">
+            Upload your detailed project proposal as a PDF.
+            Maximum file size 5MB. Optional but recommended.
+        </div>
     </div>
 
     <button type="submit" class="btn btn-primary">Submit Proposal</button>
