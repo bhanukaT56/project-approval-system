@@ -45,6 +45,21 @@
                 <dt class="col-sm-3">Abstract</dt>
                 <dd class="col-sm-9">@Model.Abstract</dd>
                 <dt class="col-sm-3">Submitted On</dt>
+                <dt class="col-sm-3">Proposal Document</dt>
+                <dd class="col-sm-9">
+                    @if (Model.ProposalFile != null)
+                    {
+                        <a asp-action="DownloadProposal" asp-route-id="@Model.Id"
+                               class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-file-earmark-pdf"></i>
+                            Download PDF — @Model.ProposalFileName
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="text-muted">No document uploaded</span>
+                    }
+                </dd>
                 <dd class="col-sm-9">
                     @Model.CreatedAt.ToString("dd MMM yyyy")
                 </dd>
