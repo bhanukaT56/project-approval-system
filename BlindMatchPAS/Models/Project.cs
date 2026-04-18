@@ -40,6 +40,12 @@ namespace BlindMatchPAS.Models
         [Display(Name = "Submitted On")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
+        [Display(Name = "Project Proposal (PDF)")]
+        public byte[]? ProposalFile { get; set; }
+
+        [Display(Name = "File Name")]
+        public string? ProposalFileName { get; set; }
+
         // Navigation Properties
         [ForeignKey("StudentId")]
         public UserProfile? StudentProfile { get; set; }
