@@ -87,6 +87,15 @@
                                class="btn btn-sm btn-outline-info me-1">
                                 <i class="bi bi-eye"></i> View
                             </a>
+
+                            @if (project.ProposalFile != null)
+                            {
+                                <a asp-action="DownloadProposal" asp-route-id="@project.Id"
+                                       class="btn btn-sm btn-outline-danger me-1">
+                                    <i class="bi bi-file-earmark-pdf"></i> PDF
+                                </a>
+                            }
+
                             @if (project.Status == "Pending")
                             {
                                 <a asp-action="Edit" asp-route-id="@project.Id"
