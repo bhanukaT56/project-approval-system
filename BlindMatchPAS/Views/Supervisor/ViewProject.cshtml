@@ -51,6 +51,27 @@
                     </div>
                 </div>
                 <div class="col-12">
+                    <div class="p-3 bg-light rounded">
+                        <h6 class="fw-bold text-muted mb-2">
+                            <i class="bi bi-file-earmark-pdf text-danger"></i>
+                            Proposal Document
+                        </h6>
+                        @if (Model.ProposalFile != null)
+                        {
+                            <a asp-controller="Project" asp-action="DownloadProposal"
+                                   asp-route-id="@Model.Id"
+                                   class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-file-earmark-pdf"></i>
+                                Download Proposal PDF
+                            </a>
+                        }
+                        else
+                        {
+                            <p class="mb-0 text-muted">No document uploaded</p>
+                        }
+                    </div>
+                </div>
+                <div class="col-12">
                     <div class="p-3 border rounded border-warning">
                         <h6 class="fw-bold text-warning mb-2">
                             <i class="bi bi-lock"></i> Student Identity
