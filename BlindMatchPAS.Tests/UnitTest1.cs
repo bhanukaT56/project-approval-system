@@ -386,5 +386,140 @@ namespace BlindMatchPAS.Tests
             mockUserManager.Verify(m => m.FindByEmailAsync(
                 "supervisor@test.com"), Times.Once);
         }
+
+        // Test 13: PDF file is saved correctly to project
+        [Fact]
+        public async Task PDF_File_Saved_To_Project()
+        {
+            var context = GetInMemoryContext();
+            var pdfContent = new byte[] { 0x25, 0x50, 0x44, 0x46 }; // PDF magic bytes
+            var project = new Project
+            {
+                Title = "PDF Test Project",
+                Abstract = "A project with a PDF proposal attached",
+                TechnicalStack = "ASP.NET Core",
+                ResearchArea = "Web Development",
+                StudentId = "student-pdf",
+                Status = "Pending",
+                IsRevealed = false,
+                CreatedAt = DateTime.Now,
+                ProposalFile = pdfContent,
+                ProposalFileName = "proposal.pdf"
+            };
+
+            context.Projects.Add(project);
+            await context.SaveChangesAsync();
+
+            var saved = await context.Projects.FirstOrDefaultAsync(
+                p => p.StudentId == "student-pdf");
+            Assert.NotNull(saved);
+            Assert.NotNull(saved.ProposalFile);
+            Assert.Equal("proposal.pdf", saved.ProposalFileName);
+            Assert.Equal(pdfContent, saved.ProposalFile);
+        }
+
+        // Test 14: Project can exist without PDF
+        [Fact]
+        public async Task Project_Can_Exist_Without_PDF()
+        {
+            var context = GetInMemoryContext();
+            var project = new Project
+            {
+                Title = "No PDF Project",
+                Abstract = "A project without a PDF proposal",
+                TechnicalStack = "React",
+                ResearchArea = "Web Development",
+                StudentId = "student-nopdf",
+                Status = "Pending",
+                IsRevealed = false,
+                CreatedAt = DateTime.Now,
+                ProposalFile = null,
+                ProposalFileName = null
+            };
+
+            context.Projects.Add(project);
+            await context.SaveChangesAsync();
+
+            var saved = await context.Projects.FirstOrDefaultAsync(
+                p => p.StudentId == "student-nopdf");
+            Assert.NotNull(saved);
+            Assert.Null(saved.ProposalFile);
+            Assert.Null(saved.ProposalFileName);
+        }
+
+        // Test 15: Moq - UserManager finds user by ID
+        [Fact]
+        public async Task MockUserManager_Can_Find_User_By_Id()
+        {
+            var mockUserStore = new Mock<IUserStore<IdentityUser>>();
+            var mockUserManager = new Mock<UserManager<IdentityUser>>(
+                mockUserStore.Object,
+                Mock.Of<IOptions<IdentityOptions>>(),
+                Mock.Of<IPasswordHasher<IdentityUser>>(),
+                new IUserValidator<IdentityUser>[0],
+                new IPasswordValidator<IdentityUser>[0],
+                Mock.Of<ILookupNormalizer>(),
+                Mock.Of<IdentityErrorDescriber>(),
+                Mock.Of<IServiceProvider>(),
+                Mock.Of<ILogger<UserManager<IdentityUser>>>()
+            );
+
+            var expectedUser = new IdentityUser
+            {
+                Id = "user-123",
+                UserName = "student@test.com",
+                Email = "student@test.com"
+            };
+
+            mockUserManager
+                .Setup(m => m.FindByIdAsync("user-123"))
+                .ReturnsAsync(expectedUser);
+
+            var result = await mockUserManager.Object.FindByIdAsync("user-123");
+
+            Assert.NotNull(result);
+            Assert.Equal("user-123", result.Id);
+            Assert.Equal("student@test.com", result.Email);
+
+            mockUserManager.Verify(m => m.FindByIdAsync("user-123"), Times.Once);
+        }
+
+        // Test 16: Moq - UserManager delete user
+        [Fact]
+        public async Task MockUserManager_Can_Delete_User()
+        {
+            var mockUserStore = new Mock<IUserStore<IdentityUser>>();
+            var mockUserManager = new Mock<UserManager<IdentityUser>>(
+                mockUserStore.Object,
+                Mock.Of<IOptions<IdentityOptions>>(),
+                Mock.Of<IPasswordHasher<IdentityUser>>(),
+                new IUserValidator<IdentityUser>[0],
+                new IPasswordValidator<IdentityUser>[0],
+                Mock.Of<ILookupNormalizer>(),
+                Mock.Of<IdentityErrorDescriber>(),
+                Mock.Of<IServiceProvider>(),
+                Mock.Of<ILogger<UserManager<IdentityUser>>>()
+            );
+
+            var user = new IdentityUser
+            {
+                Id = "user-delete",
+                UserName = "delete@test.com",
+                Email = "delete@test.com"
+            };
+
+            mockUserManager
+                .Setup(m => m.DeleteAsync(It.IsAny<IdentityUser>()))
+                .ReturnsAsync(IdentityResult.Success);
+
+            var result = await mockUserManager.Object.DeleteAsync(user);
+
+            Assert.True(result.Succeeded);
+            mockUserManager.Verify(m => m.DeleteAsync(
+                It.IsAny<IdentityUser>()), Times.Once);
+        }
+
+
+
     }
 }
